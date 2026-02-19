@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>性格国家匹配测试</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #FF2442;
+            --primary-light: #FF6B7A;
+            --primary-gradient: linear-gradient(135deg, #FF2442 0%, #FF6B7A 100%);
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --shadow: 0 10px 40px rgba(0,0,0,0.15);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 540px;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 30px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            min-height: 800px;
+        }
+        .welcome-page {
+            padding: 50px 35px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 800px;
+        }
+        .logo-container { position: relative; margin-bottom: 35px; }
+        .logo {
+            width: 140px; height: 140px;
+            background: var(--primary-gradient);
+            border-radius: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 40px rgba(255, 36, 66, 0.35);
+            animation: pulse 2s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+        .logo span { font-size: 70px; }
+        .logo-ring {
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border: 3px solid rgba(255, 36, 66, 0.2);
+            border-radius: 45px;
+            animation: rotate 10s linear infinite;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        h1 {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+        .subtitle { font-size: 16px; color: #636e72; margin-bottom: 35px; line-height: 1.7; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 40px;
+            width: 100%;
+        }
+        .feature-card {
+            background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+            border-radius: 20px;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid #ffe0e0;
+        }
+        .feature-icon {
+            width: 55px; height: 55px;
+            background: var(--primary-gradient);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 5px 15px rgba(255, 36, 66, 0.25);
+        }
+        .feature-title { font-size: 13px; font-weight: 700; color: #2d3436; }
+        .feature-desc { font-size: 11px; color: #636e72; }
+        .stats-preview {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+        .stat-item { text-align: center; }
+        .stat-number { font-size: 28px; font-weight: 900; color: var(--primary); }
+        .stat-label { font-size: 12px; color: #636e72; margin-top: 4px; }
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 20px 70px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 36, 66, 0.4);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(255, 36, 66, 0.5); }
+        .quiz-page, .loading-page, .result-page { display: none; }
+        .quiz-page { padding: 35px 30px; }
+        .progress-info { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .progress-text { font-size: 14px; font-weight: 700; color: var(--primary); }
+        .progress-percent { font-size: 14px; color: #636e72; font-weight: 500; }
+        .progress-bar { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; margin-bottom: 35px; }
+        .progress-fill { height: 100%; background: var(--primary-gradient); border-radius: 4px; transition: width 0.6s ease; }
+        .question-container { background: white; border-radius: 25px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .question-number { font-size: 12px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
+        .question-text { font-size: 22px; font-weight: 700; color: #2d3436; line-height: 1.6; }
+        .options-container { display: flex; flex-direction: column; gap: 12px; }
+        .option-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            padding: 20px 22px;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .option-card:hover { border-color: var(--primary-light); background: linear-gradient(135deg, #fff5f5 0%, #fff 100%); transform: translateX(8px); }
+        .option-emoji { font-size: 32px; width: 50px; height: 50px; background: #f8f9fa; border-radius: 15px; display: flex; align-items: center; justify-content: center; }
+        .option-card:hover .option-emoji { background: var(--primary-gradient); transform: scale(1.1); }
+        .option-text { font-size: 15px; color: #2d3436; font-weight: 500; line-height: 1.5; }
+        .loading-page { padding: 50px 35px; text-align: center; min-height: 800px; flex-direction: column; justify-content: center; align-items: center; }
+        .loading-animation { position: relative; width: 150px; height: 150px; margin-bottom: 40px; }
+        .loading-globe {
+            width: 100%; height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 70px;
+            box-shadow: 0 15px 40px rgba(255, 36, 66, 0.3);
+            animation: globePulse 2s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+        .orbit { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 2px dashed rgba(255, 36, 66, 0.3); border-radius: 50%; }
+        .orbit-1 { width: 180px; height: 180px; animation: orbitRotate 8s linear infinite; }
+        .orbit-2 { width: 220px; height: 220px; animation: orbitRotate 12s linear infinite reverse; }
+        .orbit-dot { position: absolute; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; top: -6px; left: 50%; transform: translateX(-50%); }
+        @keyframes globePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes orbitRotate { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+        .loading-text { font-size: 24px; font-weight: 700; color: #2d3436; margin-bottom: 15px; }
+        .loading-subtext { font-size: 14px; color: #636e72; max-width: 300px; line-height: 1.7; }
+        .loading-steps { margin-top: 40px; display: flex; flex-direction: column; gap: 15px; }
+        .loading-step { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #636e72; opacity: 0.5; }
+        .loading-step.active { opacity: 1; color: var(--primary); font-weight: 500; }
+        .step-icon { width: 24px; height: 24px; background: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .loading-step.active .step-icon { background: var(--primary-gradient); color: white; }
+        .result-page { min-height: 800px; }
+        .result-hero { background: var(--primary-gradient); padding: 50px 30px 80px; text-align: center; color: white; position: relative; overflow: hidden; }
+        .result-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+        .result-country-main { font-size: 42px; font-weight: 900; margin-bottom: 8px; }
+        .result-country-en { font-size: 16px; opacity: 0.9; font-weight: 500; }
+        .result-emoji { font-size: 80px; margin: 20px 0; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .result-body { padding: 0 25px 35px; margin-top: -50px; position: relative; z-index: 2; }
+        .result-card { background: white; border-radius: 25px; padding: 30px; box-shadow: var(--shadow); margin-bottom: 20px; }
+        .strength-tag { display: inline-block; background: linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%); color: #2d3436; padding: 10px 25px; border-radius: 25px; font-size: 14px; font-weight: 700; margin-bottom: 20px; }
+        .result-description { font-size: 15px; color: #2d3436; line-height: 1.9; margin-bottom: 25px; }
+        
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .section-title { font-size: 16px; font-weight: 700; color: #2d3436; }
+        .match-count { font-size: 12px; color: #636e72; background: #f8f9fa; padding: 5px 12px; border-radius: 12px; }
+        .country-rank-list { display: flex; flex-direction: column; gap: 12px; }
+        .country-rank-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: #f8f9fa; border-radius: 16px; }
+        .country-rank-item.active { background: linear-gradient(135deg, #fff0f3 0%, #fff5f5 100%); border: 2px solid var(--primary-light); }
+        .rank-number { width: 32px; height: 32px; background: #e9ecef; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #636e72; }
+        .country-rank-item:nth-child(1) .rank-number { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #2d3436; }
+        .country-rank-item:nth-child(2) .rank-number { background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%); color: #2d3436; }
+        .country-rank-item:nth-child(3) .rank-number { background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%); color: white; }
+        .rank-flag { font-size: 32px; }
+        .rank-info { flex: 1; }
+        .rank-name { font-size: 15px; font-weight: 700; color: #2d3436; margin-bottom: 3px; }
+        .rank-strength { font-size: 12px; color: #636e72; }
+        .rank-score { font-size: 18px; font-weight: 900; color: var(--primary); }
+        .traits-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 25px; }
+        .trait-item { background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); padding: 12px 15px; border-radius: 12px; font-size: 13px; color: #2d3436; font-weight: 500; border-left: 3px solid var(--primary); }
+        .why-country { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 18px; padding: 22px; margin-bottom: 25px; }
+        .why-title { font-size: 14px; font-weight: 700; color: #2d3436; margin-bottom: 12px; }
+        .why-text { font-size: 14px; color: #636e72; line-height: 1.8; }
+        .celebrity-match { display: flex; align-items: center; gap: 18px; background: linear-gradient(135deg, #fff5f5 0%, #fff0f3 100%); padding: 20px; border-radius: 18px; margin-bottom: 25px; }
+        .celebrity-avatar { width: 60px; height: 60px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        .celebrity-info { flex: 1; }
+        .celebrity-label { font-size: 12px; color: #636e72; margin-bottom: 4px; }
+        .celebrity-name { font-size: 18px; font-weight: 700; color: #2d3436; }
+        .celebrity-desc { font-size: 12px; color: var(--primary); margin-top: 4px; font-weight: 500; }
+        .global-stats { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 18px; padding: 22px; color: white; margin-bottom: 25px; }
+        .stats-title { font-size: 14px; font-weight: 700; margin-bottom: 18px; }
+        .stats-bar { margin-bottom: 15px; }
+        .stats-bar-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; opacity: 0.9; }
+        .stats-bar-track { height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+        .stats-bar-fill { height: 100%; background: rgba(255,255,255,0.9); border-radius: 4px; transition: width 1s ease; }
+        .result-actions { display: flex; gap: 12px; }
+        .btn-action { flex: 1; padding: 16px; border-radius: 16px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-family: inherit; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-share { background: var(--primary-gradient); color: white; }
+        .btn-retry { background: #f8f9fa; color: #636e72; border: 2px solid #e9ecef; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: flex-end; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; width: 100%; max-width: 540px; border-radius: 30px 30px 0 0; padding: 35px 30px; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 25px; text-align: center; color: #2d3436; }
+        .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .share-item { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; padding: 15px 10px; border-radius: 18px; transition: all 0.3s; }
+        .share-item:hover { background: #f8f9fa; transform: translateY(-3px); }
+        .share-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        .share-icon.wechat { background: linear-gradient(135deg, #07c160 0%, #05a050 100%); }
+        .share-icon.weibo { background: linear-gradient(135deg, #e6162d 0%, #c41226 100%); }
+        .share-icon.qq { background: linear-gradient(135deg, #12b7f5 0%, #0ea5e0 100%); }
+        .share-icon.link { background: linear-gradient(135deg, #6c5ce7 0%, #5b4cdb 100%); }
+        .share-label { font-size: 12px; color: #636e72; font-weight: 500; }
+        .btn-cancel { width: 100%; padding: 16px; background: #f8f9fa; border: none; border-radius: 16px; font-size: 16px; font-weight: 600; color: #636e72; cursor: pointer; }
+        /* 移动端适配 (小于 768px) */
+        @media (max-width: 768px) {
+            .container { 
+                border-radius: 0; 
+                min-height: 100vh; 
+                max-width: 100%;
+            }
+            body { 
+                padding: 0; 
+            }
+            h1 {
+                font-size: 28px;
+            }
+            .subtitle {
+                font-size: 14px;
+            }
+            .features-grid { 
+                grid-template-columns: 1fr; 
+                gap: 10px;
+            }
+            .feature-card { 
+                flex-direction: row; 
+                padding: 15px 20px; 
+            }
+            .feature-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 22px;
+            }
+            .logo {
+                width: 100px;
+                height: 100px;
+            }
+            .logo span {
+                font-size: 50px;
+            }
+            .question-text {
+                font-size: 18px;
+            }
+            .option-card {
+                padding: 15px;
+            }
+            .option-emoji {
+                width: 40px;
+                height: 40px;
+                font-size: 24px;
+            }
+            .option-text {
+                font-size: 14px;
+            }
+            .result-country-main {
+                font-size: 32px;
+            }
+            .result-emoji {
+                font-size: 60px;
+            }
+            .btn-primary {
+                padding: 16px 50px;
+                font-size: 16px;
+            }
+            .traits-grid { 
+                grid-template-columns: 1fr; 
+            }
+            .stats-preview {
+                padding: 15px;
+            }
+            .stat-number {
+                font-size: 22px;
+            }
+        }
+
+        /* 电脑端适配 (大于 768px) */
+        @media (min-width: 769px) {
+            body {
+                padding: 40px;
+            }
+            .container {
+                max-width: 600px;
+                min-height: 700px;
+            }
+            h1 {
+                font-size: 42px;
+            }
+            .subtitle {
+                font-size: 18px;
+            }
+            .welcome-page {
+                min-height: 700px;
+            }
+            .question-container {
+                padding: 40px;
+            }
+            .question-text {
+                font-size: 24px;
+            }
+            .result-hero {
+                padding: 60px 40px 100px;
+            }
+            .result-body {
+                padding: 0 40px 40px;
+            }
+        }
+        .fade-in { animation: fadeIn 0.6s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-in-right { animation: slideInRight 0.5s ease; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-page" id="welcomePage">
+            <div class="logo-container">
+                <div class="logo-ring"></div>
+                <div class="logo"><span>🌏</span></div>
+            </div>
+            <h1>性格国家匹配测试</h1>
+            <p class="subtitle">35道题 · 发现你灵魂归属的国度</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <div>
+                        <div class="feature-title">科学测评</div>
+                        <div class="feature-desc">盖洛普34天赋主题</div>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <div>
+                        <div class="feature-title">全球视野</div>
+                        <div class="feature-desc">35个国家精准匹配</div>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✨</div>
+                    <div>
+                        <div class="feature-title">深度分析</div>
+                        <div class="feature-desc">精准匹配</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-preview">
+                <div class="stat-item">
+                    <div class="stat-number">12,580</div>
+                    <div class="stat-label">已测人数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">35</div>
+                    <div class="stat-label">覆盖国家</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">准确度</div>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="startQuiz()">开始测试</button>
+        </div>
+
+        <div class="quiz-page" id="quizPage">
+            <div class="progress-info">
+                <span class="progress-text">问题 <span id="currentQuestion">1</span>/35</span>
+                <span class="progress-percent" id="progressPercent">3%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 3%"></div>
+            </div>
+            <div class="question-container">
+                <div class="question-number">CliftonStrengths 天赋识别</div>
+                <h2 class="question-text" id="questionText">加载中...</h2>
+            </div>
+            <div class="options-container" id="optionsContainer"></div>
+        </div>
+
+        <div class="loading-page" id="loadingPage">
+            <div class="loading-animation">
+                <div class="orbit orbit-1"><div class="orbit-dot"></div></div>
+                <div class="orbit orbit-2"><div class="orbit-dot"></div></div>
+                <div class="loading-globe">🌍</div>
+            </div>
+            <div class="loading-text">正在分析你的天赋...</div>
+            <div class="loading-subtext">基于盖洛普优势识别器，我们正在匹配最适合你的国度</div>
+            <div class="loading-steps">
+                <div class="loading-step active" id="step1"><div class="step-icon">✓</div><span>分析34个天赋主题</span></div>
+                <div class="loading-step" id="step2"><div class="step-icon">2</div><span>匹配35个国家数据库</span></div>
+                <div class="loading-step" id="step3"><div class="step-icon">3</div><span>生成你的天赋国度报告</span></div>
+            </div>
+        </div>
+
+        <div class="result-page" id="resultPage">
+            <div class="result-hero">
+                <div class="result-badge">🏆 最佳匹配</div>
+                <div class="result-country-main" id="resultCountry">日本</div>
+                <div class="result-country-en" id="resultCountryEn">Japan</div>
+                <div class="result-emoji" id="resultEmoji">🗾</div>
+            </div>
+            <div class="result-body">
+                <div class="result-card">
+                    <span class="strength-tag" id="strengthTag">🎯 成就者 Achiever</span>
+                    <p class="result-description" id="resultDescription">你拥有强烈的成就驱动力，像日本一样追求极致与完美。</p>
+                    
+                    <div class="section-header">
+                        <div class="section-title">💡 核心天赋特质</div>
+                    </div>
+                    <div class="traits-grid" id="traitsGrid"></div>
+                    <div class="why-country">
+                        <div class="why-title">✈️ 为什么这个国家适合你</div>
+                        <p class="why-text" id="whyText">日本文化中的工匠精神、对完美的追求...</p>
+                    </div>
+                    <div class="celebrity-match">
+                        <div class="celebrity-avatar" id="celebrityAvatar">📚</div>
+                        <div class="celebrity-info">
+                            <div class="celebrity-label">与你相似的名人</div>
+                            <div class="celebrity-name" id="celebrityName">村上春树</div>
+                            <div class="celebrity-desc" id="celebrityDesc">坚持每日写作，成就文学大师</div>
+                        </div>
+                    </div>
+                    <div class="global-stats">
+                        <div class="stats-title">📊 数据统计</div>
+                        <div class="stats-bar">
+                            <div class="stats-bar-header">
+                                <span>你是这个类型的第 <strong id="userRank">1,258</strong> 位</span>
+                                <span id="userPercent">10%</span>
+                            </div>
+                            <div class="stats-bar-track">
+                                <div class="stats-bar-fill" id="statsBarFill" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="result-actions">
+                        <button class="btn-action btn-share" onclick="showShareModal()"><span>📤</span> 分享结果</button>
+                        <button class="btn-action btn-retry" onclick="restartQuiz()"><span>🔄</span> 再测一次</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="shareModal" onclick="hideShareModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-title">分享到</div>
+            <div class="share-grid">
+                <div class="share-item" onclick="shareTo('wechat')">
+                    <div class="share-icon wechat">💬</div>
+                    <span class="share-label">微信</span>
+                </div>
+                <div class="share-item" onclick="shareTo('weibo')">
+                    <div class="share-icon weibo">📢</div>
+                    <span class="share-label">微博</span>
+                </div>
+                <div class="share-item" onclick="shareTo('qq')">
+                    <div class="share-icon qq">🐧</div>
+                    <span class="share-label">QQ</span>
+                </div>
+                <div class="share-item" onclick="copyLink()">
+                    <div class="share-icon link">🔗</div>
+                    <span class="share-label">复制链接</span>
+                </div>
+            </div>
+            <button class="btn-cancel" onclick="hideShareModal()">取消</button>
+        </div>
+    </div>
+
+    <script>
+        const countries = {
+            japan: { name: "日本", nameEn: "Japan", emoji: "🗾", strength: "成就者 Achiever", strengthDesc: "追求极致、勤奋努力", description: "你拥有强烈的成就驱动力，像日本一样追求极致与完美。你享受忙碌的成就感，每天都在推动自己前进。", traits: ["勤奋努力", "追求极致", "注重细节", "持续改进", "敬业专注"], whyCountry: "日本文化中的工匠精神、对完美的追求、以及不断自我超越的价值观，与你的天赋特质高度契合。", celebrity: "村上春树", celebrityEmoji: "📚", celebrityDesc: "坚持每日写作，成就文学大师" },
+            usa: { name: "美国", nameEn: "USA", emoji: "🇺🇸", strength: "行动派 Activator", strengthDesc: "勇于行动、敢于冒险", description: "你是天生的行动派，像美国一样充满活力和冒险精神。你不会等待完美的时机，而是创造时机。", traits: ["勇于冒险", "行动导向", "创新思维", "自信果断", "追求梦想"], whyCountry: "美国的创业文化、对个人成就的推崇、以及'美国梦'的精神，与你的行动力完美契合。", celebrity: "埃隆·马斯克", celebrityEmoji: "🚀", celebrityDesc: "用行动改变世界的科技先锋" },
+            germany: { name: "德国", nameEn: "Germany", emoji: "🇩🇪", strength: "分析力 Analytical", strengthDesc: "逻辑严谨、追求真相", description: "你拥有德国式的严谨与理性，善于分析复杂问题并找出最优解。", traits: ["逻辑严谨", "追求真相", "系统化思维", "注重效率", "质量至上"], whyCountry: "德国文化中对工程精度的追求、对逻辑思维的重视，与你的分析天赋完美匹配。", celebrity: "爱因斯坦", celebrityEmoji: "🔬", celebrityDesc: "用理性探索宇宙的科学巨匠" },
+            switzerland: { name: "瑞士", nameEn: "Switzerland", emoji: "🇨🇭", strength: "审慎 Deliberative", strengthDesc: "深思熟虑、谨慎决策", description: "你像瑞士一样谨慎而可靠，善于在做出决定前全面考虑各种可能性。", traits: ["深思熟虑", "风险评估", "谨慎决策", "可靠稳健", "长期规划"], whyCountry: "瑞士的中立态度、精密工艺、以及对质量的极致追求，体现了你审慎天赋的最佳归属。", celebrity: "罗杰·费德勒", celebrityEmoji: "🎾", celebrityDesc: "优雅精准的网球传奇" },
+            uk: { name: "英国", nameEn: "United Kingdom", emoji: "🇬🇧", strength: "回顾 Context", strengthDesc: "尊重传统、以史为鉴", description: "你尊重历史和传统，像英国一样珍视过往的智慧。", traits: ["尊重传统", "历史视野", "文化积淀", "稳健保守", "绅士风度"], whyCountry: "英国深厚的历史文化、对传统的尊重、以及绅士精神，与你的回顾天赋高度契合。", celebrity: "温斯顿·丘吉尔", celebrityEmoji: "🎩", celebrityDesc: "以历史智慧引领国家的领袖" },
+            france: { name: "法国", nameEn: "France", emoji: "🇫🇷", strength: "理念 Ideation", strengthDesc: "创意无限、思维活跃", description: "你拥有法式浪漫的创新思维，善于产生新想法并从不同角度看待问题。", traits: ["创意思维", "概念化能力", "独特视角", "艺术感知", "哲学思考"], whyCountry: "法国的哲学传统、艺术创新、以及对思想自由的推崇，为你的创意天赋提供了完美的土壤。", celebrity: "可可·香奈儿", celebrityEmoji: "👗", celebrityDesc: "用理念革新时尚的设计师" },
+            canada: { name: "加拿大", nameEn: "Canada", emoji: "🇨🇦", strength: "和谐 Harmony", strengthDesc: "追求共识、化解冲突", description: "你像加拿大一样友善包容，善于在各种观点中找到共识。", traits: ["友善包容", "化解冲突", "寻求共识", "多元文化"], whyCountry: "加拿大的多元文化政策、对和平的追求、以及友善的国民性格，与你的和谐天赋完美匹配。", celebrity: "莱昂纳德·科恩", celebrityEmoji: "🎵", celebrityDesc: "用音乐传递人文关怀的诗人" },
+            australia: { name: "澳大利亚", nameEn: "Australia", emoji: "🇦🇺", strength: "积极 Positivity", strengthDesc: "乐观向上、感染他人", description: "你拥有澳洲阳光般的积极能量，总是能看到事物好的一面。", traits: ["乐观积极", "感染力强", "热爱生活", "幽默风趣", "活力充沛"], whyCountry: "澳大利亚的阳光海滩、轻松生活方式、以及'没问题'的乐观态度，与你的积极天赋高度契合。", celebrity: "史蒂夫·欧文", celebrityEmoji: "🐊", celebrityDesc: "用热情拥抱自然的鳄鱼先生" },
+            newzealand: { name: "新西兰", nameEn: "New Zealand", emoji: "🇳🇿", strength: "适应力 Adaptability", strengthDesc: "随遇而安、灵活应变", description: "你像新西兰人一样适应力强，能够在变化中找到机会。", traits: ["灵活应变", "活在当下", "随遇而安", "抗压能力强", "开放心态"], whyCountry: "新西兰的户外文化、对自然的亲近、以及灵活变通的生活态度，体现了你适应天赋的最佳归属。", celebrity: "彼得·杰克逊", celebrityEmoji: "🎬", celebrityDesc: "用适应力创造电影奇迹的导演" },
+            denmark: { name: "丹麦", nameEn: "Denmark", emoji: "🇩🇰", strength: "学习 Learner", strengthDesc: "终身学习、不断进步", description: "你拥有丹麦式的学习热情，享受学习新事物的过程。", traits: ["求知欲强", "终身学习", "持续进步", "开放心态", "自我提升"], whyCountry: "丹麦的教育理念、终身学习文化、以及Hygge式的自我提升态度，与你的学习天赋完美契合。", celebrity: "安徒生", celebrityEmoji: "📖", celebrityDesc: "一生都在学习的童话大师" },
+            sweden: { name: "瑞典", nameEn: "Sweden", emoji: "🇸🇪", strength: "公平 Consistency", strengthDesc: "公平正义、一视同仁", description: "你像瑞典一样追求公平，相信规则应该平等地适用于所有人。", traits: ["追求公平", "一视同仁", "规则导向", "社会正义", "平等意识"], whyCountry: "瑞典的社会福利制度、对平等的追求、以及公平正义的社会氛围，与你的公平天赋高度契合。", celebrity: "格蕾塔·通贝里", celebrityEmoji: "🌱", celebrityDesc: "为气候正义发声的青年领袖" },
+            netherlands: { name: "荷兰", nameEn: "Netherlands", emoji: "🇳🇱", strength: "统筹 Arranger", strengthDesc: "善于组织、协调资源", description: "你像荷兰人一样善于统筹，能够在复杂的情况下找到最优配置。", traits: ["善于组织", "协调资源", "灵活配置", "系统思维", "高效执行"], whyCountry: "荷兰的土地管理智慧、商业组织才能、以及高效的社会运转，体现了你统筹天赋的最佳归属。", celebrity: "伦勃朗", celebrityEmoji: "🎨", celebrityDesc: "用统筹构图的大师画家" },
+            italy: { name: "意大利", nameEn: "Italy", emoji: "🇮🇹", strength: "完美 Maximizer", strengthDesc: "追求卓越、精益求精", description: "你拥有意大利式的完美主义，不满足于平庸，总是追求卓越。", traits: ["追求卓越", "精益求精", "品质至上", "注重细节", "艺术品味"], whyCountry: "意大利的艺术传统、对美的追求、以及'La Dolce Vita'的生活哲学，与你的完美天赋完美契合。", celebrity: "米开朗基罗", celebrityEmoji: "🗿", celebrityDesc: "追求完美艺术的大师" },
+            norway: { name: "挪威", nameEn: "Norway", emoji: "🇳🇴", strength: "信仰 Belief", strengthDesc: "坚守价值观、有使命感", description: "你像挪威人一样坚守自己的价值观，拥有强烈的使命感。", traits: ["坚守信念", "使命感强", "价值观导向", "忠诚可靠", "坚守原则"], whyCountry: "挪威对可持续发展的承诺、和平奖的设立、以及坚定的社会价值观，与你的信仰天赋高度契合。", celebrity: "易卜生", celebrityEmoji: "🎭", celebrityDesc: "用戏剧坚守人性的作家" },
+            india: { name: "印度", nameEn: "India", emoji: "🇮🇳", strength: "关联 Connectedness", strengthDesc: "洞察关联、寻找意义", description: "你像印度一样善于看到事物之间的深层联系，相信万物互联。", traits: ["洞察关联", "寻找意义", "整体思维", "灵性追求", "同理心强"], whyCountry: "印度的哲学传统、灵性文化、以及'梵我合一'的思想，与你的关联天赋完美契合。", celebrity: "甘地", celebrityEmoji: "🕊️", celebrityDesc: "看到人类关联性的圣雄" },
+            brazil: { name: "巴西", nameEn: "Brazil", emoji: "🇧🇷", strength: "取悦 Woo", strengthDesc: "善于社交、赢得好感", description: "你拥有巴西式的社交魅力，善于赢得他人的好感。", traits: ["善于社交", "感染力强", "赢得好感", "热情洋溢", "人际关系"], whyCountry: "巴西的热情文化、桑巴精神、以及对人际关系的重视，体现了你取悦天赋的最佳归属。", celebrity: "贝利", celebrityEmoji: "⚽", celebrityDesc: "用魅力征服世界的球王" },
+            thailand: { name: "泰国", nameEn: "Thailand", emoji: "🇹🇭", strength: "包容 Includer", strengthDesc: "接纳他人、消除排斥", description: "你像泰国一样包容，善于接纳不同背景的人。", traits: ["接纳包容", "消除排斥", "平易近人", "友善好客", "多元接纳"], whyCountry: "泰国的微笑文化、佛教包容精神、以及对游客的友好态度，与你的包容天赋高度契合。", celebrity: "泰王拉玛九世", celebrityEmoji: "👑", celebrityDesc: "深受全民爱戴的包容君主" },
+            mexico: { name: "墨西哥", nameEn: "Mexico", emoji: "🇲🇽", strength: "沟通 Communication", strengthDesc: "善于表达、传播思想", description: "你像墨西哥人一样善于表达，能够将复杂的想法转化为易懂的故事。", traits: ["善于表达", "故事讲述", "传播思想", "感染力强", "口才出众"], whyCountry: "墨西哥的口述传统、丰富的民间艺术、以及热情好客的文化，体现了你沟通天赋的最佳归属。", celebrity: "弗里达·卡罗", celebrityEmoji: "🎨", celebrityDesc: "用画作沟通灵魂的艺术家" },
+            kenya: { name: "肯尼亚", nameEn: "Kenya", emoji: "🇰🇪", strength: "竞争 Competition", strengthDesc: "追求胜利、挑战自我", description: "你像肯尼亚人一样拥有强烈的竞争意识，总是想要成为最好的。", traits: ["追求胜利", "挑战自我", "不断超越", "目标导向", "毅力坚韧"], whyCountry: "肯尼亚的长跑传统、对卓越的追求、以及在世界舞台上证明自己的决心，与你的竞争天赋完美契合。", celebrity: "埃鲁德·基普乔格", celebrityEmoji: "🏃", celebrityDesc: "破二马拉松的传奇跑者" },
+            egypt: { name: "埃及", nameEn: "Egypt", emoji: "🇪🇬", strength: "战略 Strategic", strengthDesc: "深谋远虑、寻找路径", description: "你像古埃及人一样善于战略规划，能够在复杂的情况下找到清晰的路径。", traits: ["深谋远虑", "路径规划", "预见未来", "化繁为简", "目标导向"], whyCountry: "埃及的文明智慧、金字塔的精密规划、以及在复杂地缘中的生存智慧，体现了你战略天赋的最佳归属。", celebrity: "纳赛尔", celebrityEmoji: "⚡", celebrityDesc: "战略改变阿拉伯世界的领袖" },
+            morocco: { name: "摩洛哥", nameEn: "Morocco", emoji: "🇲🇦", strength: "个别 Individualization", strengthDesc: "洞察个性、因材施教", description: "你像摩洛哥一样善于发现每个人的独特之处。", traits: ["洞察个性", "因材施教", "独特视角", "个性化", "深度理解"], whyCountry: "摩洛哥多元文化的融合、柏柏尔与阿拉伯的独特结合、以及对个体差异的尊重，与你的个别天赋高度契合。", celebrity: "伊夫·圣罗兰", celebrityEmoji: "👔", celebrityDesc: "用设计彰显个性的时尚大师" },
+            vietnam: { name: "越南", nameEn: "Vietnam", emoji: "🇻🇳", strength: "纪律 Discipline", strengthDesc: "自律有序、规律生活", description: "你像越南人一样拥有铁的纪律，善于建立秩序和规律。", traits: ["严格自律", "建立秩序", "规律生活", "坚韧不拔", "目标坚定"], whyCountry: "越南人民的坚韧精神、克服困难的纪律性、以及从无到有的建设历程，体现了你纪律天赋的最佳归属。", celebrity: "武元甲", celebrityEmoji: "⚔️", celebrityDesc: "用纪律战胜强军的将军" },
+            indonesia: { name: "印度尼西亚", nameEn: "Indonesia", emoji: "🇮🇩", strength: "搜集 Input", strengthDesc: "求知欲强、积累知识", description: "你像印度尼西亚一样充满好奇心，喜欢收集各种信息和物品。", traits: ["求知欲强", "积累知识", "好奇心旺", "博学多才", "信息整合"], whyCountry: "印尼的群岛多样性、丰富的文化传统、以及对多元知识的包容，与你的搜集天赋完美契合。", celebrity: "巴迪克艺术家", celebrityEmoji: "🎨", celebrityDesc: "收集传统工艺的艺术家" },
+            philippines: { name: "菲律宾", nameEn: "Philippines", emoji: "🇵🇭", strength: "交往 Relator", strengthDesc: "深度关系、建立信任", description: "你像菲律宾人一样重视深度关系，喜欢与少数亲密的朋友建立牢固的纽带。", traits: ["重视友谊", "深度关系", "忠诚可靠", "亲密互动", "建立信任"], whyCountry: "菲律宾的家族观念、对友谊的重视、以及热情好客的文化，体现了你交往天赋的最佳归属。", celebrity: "曼尼·帕奎奥", celebrityEmoji: "🥊", celebrityDesc: "与国民建立深厚联系的拳王" },
+            peru: { name: "秘鲁", nameEn: "Peru", emoji: "🇵🇪", strength: "前瞻 Futuristic", strengthDesc: "展望未来、憧憬可能", description: "你像印加文明一样拥有前瞻思维，对未来充满憧憬。", traits: ["展望未来", "愿景规划", "憧憬可能", "激励他人", "创新前瞻"], whyCountry: "秘鲁的印加文明智慧、马丘比丘的超前规划、以及对未来的持续憧憬，与你的前瞻天赋高度契合。", celebrity: "马里奥·巴尔加斯·略萨", celebrityEmoji: "📚", celebrityDesc: "用文学预见未来的诺奖作家" },
+            colombia: { name: "哥伦比亚", nameEn: "Colombia", emoji: "🇨🇴", strength: "积极 Positivity", strengthDesc: "乐观向上、感染他人", description: "你像哥伦比亚人一样拥有非凡的乐观精神，即使面对困难也能保持微笑。", traits: ["乐观坚韧", "感染力强", "热爱生活", "幽默风趣", "积极面对"], whyCountry: "哥伦比亚人民的乐观精神、从困境中重生的力量、以及对生活的热爱，体现了你积极天赋的最佳归属。", celebrity: "马尔克斯", celebrityEmoji: "📖", celebrityDesc: "用魔幻现实书写乐观的大师" },
+            argentina: { name: "阿根廷", nameEn: "Argentina", emoji: "🇦🇷", strength: "自信 Self-Assurance", strengthDesc: "自信坚定、内心强大", description: "你像阿根廷人一样拥有强烈的自信，相信自己的能力。", traits: ["自信坚定", "内心强大", "敢于冒险", "独立自主", "领导气质"], whyCountry: "阿根廷的探戈精神、足球自信、以及在南美独树一帜的文化自信，与你的自信天赋完美契合。", celebrity: "马拉多纳", celebrityEmoji: "⚽", celebrityDesc: "用自信征服世界的球王" },
+            cuba: { name: "古巴", nameEn: "Cuba", emoji: "🇨🇺", strength: "思维 Intellection", strengthDesc: "深度思考、内省智慧", description: "你像古巴一样拥有深度的思考能力，享受独处时的 introspection。", traits: ["深度思考", "内省智慧", "哲学思维", "独立思考", "知识追求"], whyCountry: "古巴的哲学传统、知识分子的内省文化、以及在困境中保持思考的精神，体现了你思维天赋的最佳归属。", celebrity: "何塞·马蒂", celebrityEmoji: "✍️", celebrityDesc: "用思想改变国家的诗人" },
+            jamaica: { name: "牙买加", nameEn: "Jamaica", emoji: "🇯🇲", strength: "完美 Maximizer", strengthDesc: "追求卓越、发挥潜能", description: "你像牙买加人一样追求完美，在自己的领域力求做到最好。", traits: ["追求卓越", "发挥潜能", "突破极限", "专注领域", "持续精进"], whyCountry: "牙买加在短跑领域的统治地位、对速度的极致追求、以及小国大成就的传奇，与你的完美天赋完美契合。", celebrity: "博尔特", celebrityEmoji: "⚡", celebrityDesc: "追求速度完美的闪电" },
+            ethiopia: { name: "埃塞俄比亚", nameEn: "Ethiopia", emoji: "🇪🇹", strength: "成就 Achiever", strengthDesc: "勤奋努力、追求目标", description: "你像埃塞俄比亚人一样拥有非凡的毅力，通过持续努力实现目标。", traits: ["勤奋努力", "目标导向", "坚持不懈", "自律严格", "追求卓越"], whyCountry: "埃塞俄比亚古老文明的韧性、长跑冠军的摇篮、以及摆脱贫困的奋斗精神，体现了你成就天赋的最佳归属。", celebrity: "格布雷西拉西耶", celebrityEmoji: "🏃", celebrityDesc: "用成就书写传奇的长跑皇帝" },
+            tanzania: { name: "坦桑尼亚", nameEn: "Tanzania", emoji: "🇹🇿", strength: "统筹 Arranger", strengthDesc: "协调资源、灵活配置", description: "你像坦桑尼亚一样善于统筹协调，能够在多元的环境中找到平衡。", traits: ["协调能力", "资源整合", "灵活应变", "多元管理", "平衡艺术"], whyCountry: "坦桑尼亚的多民族和谐、野生动物保护的成功模式、以及旅游业的统筹发展，与你的统筹天赋完美契合。", celebrity: "朱利叶斯·尼雷尔", celebrityEmoji: "🕊️", celebrityDesc: "统筹多元民族的国父" },
+            srilanka: { name: "斯里兰卡", nameEn: "Sri Lanka", emoji: "🇱🇰", strength: "修复 Restorative", strengthDesc: "解决问题、化危为机", description: "你像斯里兰卡一样拥有修复的能力，善于发现问题并解决它们。", traits: ["解决问题", "化危为机", "危机管理", "持续改进", "修复能力"], whyCountry: "斯里兰卡从内战到和平的修复、生态保护的成效、以及面对灾难的恢复力，体现了你修复天赋的最佳归属。", celebrity: "亚瑟·克拉克", celebrityEmoji: "🚀", celebrityDesc: "用想象力修复人类视野的作家" },
+            nepal: { name: "尼泊尔", nameEn: "Nepal", emoji: "🇳🇵", strength: "信仰 Belief", strengthDesc: "坚守价值观、使命感强", description: "你像尼泊尔一样拥有坚定的信仰，不为外界的变化所动摇。", traits: ["坚守信仰", "价值观导向", "精神追求", "坚定不移", "内心平静"], whyCountry: "尼泊尔的佛教文化、登山者的信仰力量、以及在自然灾害中保持精神力量的韧性，与你的信仰天赋完美契合。", celebrity: "丹增·诺盖", celebrityEmoji: "🏔️", celebrityDesc: "用信仰征服珠峰的登山家" },
+            myanmar: { name: "缅甸", nameEn: "Myanmar", emoji: "🇲🇲", strength: "责任 Responsibility", strengthDesc: "责任心强、信守承诺", description: "你像缅甸人一样拥有强烈的责任感，一旦承诺就会全力以赴。", traits: ["责任心强", "信守承诺", "尽职尽责", "可靠可信", "使命感"], whyCountry: "缅甸的佛教责任伦理、对家庭的责任感、以及在困难时期坚守承诺的文化，体现了你责任天赋的最佳归属。", celebrity: "昂山素季", celebrityEmoji: "🕊️", celebrityDesc: "用责任领导民主运动的领袖" },
+            bangladesh: { name: "孟加拉国", nameEn: "Bangladesh", emoji: "🇧🇩", strength: "开发者 Developer", strengthDesc: "培养他人、见证成长", description: "你像孟加拉国一样拥有培养他人的天赋，善于发现他人的潜力并帮助他们成长。", traits: ["培养他人", "见证成长", "耐心指导", "激励进步", "教育热情"], whyCountry: "孟加拉国的微金融模式、对教育的重视、以及通过发展实现脱贫的努力，与你的开发天赋完美契合。", celebrity: "尤努斯", celebrityEmoji: "💰", celebrityDesc: "用开发理念获诺奖的经济学家" },
+            mongolia: { name: "蒙古", nameEn: "Mongolia", emoji: "🇲🇳", strength: "统率 Command", strengthDesc: "领导力强、敢于决断", description: "你像蒙古人一样拥有天生的领导气质，敢于做出艰难的决定。", traits: ["领导力强", "敢于决断", "果断行动", "影响力大", "指挥能力"], whyCountry: "蒙古的游牧领袖传统、成吉思汗的统率智慧、以及广阔草原上的独立精神，体现了你统率天赋的最佳归属。", celebrity: "成吉思汗", celebrityEmoji: "⚔️", celebrityDesc: "统率世界最大帝国的可汗" },
+            iceland: { name: "冰岛", nameEn: "Iceland", emoji: "🇮🇸", strength: "专注 Focus", strengthDesc: "专注目标、排除干扰", description: "你像冰岛人一样拥有极强的专注力，能够排除一切干扰专注于目标。", traits: ["专注目标", "排除干扰", "坚持不懈", "方向明确", "深度工作"], whyCountry: "冰岛的专注精神、从金融危机中专注重建的决心、以及对文学和音乐的专注追求，与你的专注天赋完美契合。", celebrity: "比约克", celebrityEmoji: "🎵", celebrityDesc: "用专注创造独特音乐的天才" },
+            fiji: { name: "斐济", nameEn: "Fiji", emoji: "🇫🇯", strength: "和谐 Harmony", strengthDesc: "追求和平、化解矛盾", description: "你像斐济人一样追求和谐与和平，善于化解矛盾。", traits: ["追求和平", "化解矛盾", "包容理解", "友善亲和", "平衡协调"], whyCountry: "斐济的'Bula'友好精神、多元种族的和谐共处、以及作为和平度假胜地的氛围，体现了你和谐天赋的最佳归属。", celebrity: "斐济橄榄球队", celebrityEmoji: "🏉", celebrityDesc: "用和谐凝聚力量的国家队" }
+        };
+
+        const questions = [
+            { id: 1, text: "一天结束，回顾今天，你更在意的是？", country: "japan", options: [{ emoji: "📊", text: "完成了多少任务，是否有成就感", weight: 3 }, { emoji: "😊", text: "今天过得开不开心，心情如何", weight: 1 }, { emoji: "🤝", text: "帮助了哪些人，建立了什么关系", weight: 1 }, { emoji: "💡", text: "学到了什么新知识或想法", weight: 1 }] },
+            { id: 2, text: "当你有一个新想法时，你通常会？", country: "usa", options: [{ emoji: "🚀", text: "立即行动，边做边调整", weight: 3 }, { emoji: "📝", text: "先制定详细计划再开始", weight: 1 }, { emoji: "🗣️", text: "先和朋友讨论这个想法", weight: 1 }, { emoji: "🤔", text: "先思考可能的风险和问题", weight: 1 }] },
+            { id: 3, text: "做重要决定时，你更依赖？", country: "germany", options: [{ emoji: "📈", text: "数据和事实分析", weight: 3 }, { emoji: "💭", text: "直觉和内心感受", weight: 1 }, { emoji: "👥", text: "听取他人的建议和意见", weight: 1 }, { emoji: "⚖️", text: "权衡各种可能性和后果", weight: 2 }] },
+            { id: 4, text: "计划突然被打乱，你会？", country: "newzealand", options: [{ emoji: "🌊", text: "随遇而安，灵活调整", weight: 3 }, { emoji: "😤", text: "感到沮丧，需要时间接受", weight: 1 }, { emoji: "🔄", text: "立即制定新计划", weight: 2 }, { emoji: "🤷", text: "看情况再说", weight: 2 }] },
+            { id: 5, text: "面对多个任务时，你更倾向于？", country: "netherlands", options: [{ emoji: "🧩", text: "找到最佳配置，灵活调配资源", weight: 3 }, { emoji: "📋", text: "按顺序一个一个完成", weight: 2 }, { emoji: "🎯", text: "先做最重要的任务", weight: 2 }, { emoji: "🆘", text: "寻求帮助或分工合作", weight: 1 }] },
+            { id: 6, text: "面对违背你价值观的诱惑，你会？", country: "norway", options: [{ emoji: "🚫", text: "坚决拒绝，坚守原则", weight: 3 }, { emoji: "⚖️", text: "权衡利弊后再决定", weight: 1 }, { emoji: "🤷", text: "看具体情况", weight: 1 }, { emoji: "🙏", text: "寻求内心平静再做决定", weight: 2 }] },
+            { id: 7, text: "团队陷入混乱时，你会？", country: "mongolia", options: [{ emoji: "📢", text: "站出来领导，做出决断", weight: 3 }, { emoji: "🤝", text: "尝试协调各方意见", weight: 2 }, { emoji: "👀", text: "观察等待，看情况发展", weight: 1 }, { emoji: "🏃", text: "避免冲突，退出争论", weight: 1 }] },
+            { id: 8, text: "你更喜欢哪种表达方式？", country: "mexico", options: [{ emoji: "🎤", text: "演讲、讲故事、分享想法", weight: 3 }, { emoji: "✍️", text: "写作、记录、深度思考", weight: 2 }, { emoji: "🎨", text: "通过艺术、音乐、视觉表达", weight: 2 }, { emoji: "🤫", text: "行动胜于言语", weight: 1 }] },
+            { id: 9, text: "在比赛中，什么最能激励你？", country: "kenya", options: [{ emoji: "🏆", text: "赢得第一名，超越他人", weight: 3 }, { emoji: "📈", text: "超越自己之前的成绩", weight: 2 }, { emoji: "🤝", text: "享受过程和团队合作", weight: 1 }, { emoji: "🎯", text: "完成既定的目标", weight: 2 }] },
+            { id: 10, text: "你如何看待生活中的巧合？", country: "india", options: [{ emoji: "🔗", text: "相信一切都有深层联系和意义", weight: 3 }, { emoji: "🎲", text: "只是随机事件，没有特殊含义", weight: 1 }, { emoji: "🤔", text: "有时会思考其意义", weight: 2 }, { emoji: "🌟", text: "可能是某种暗示或机会", weight: 2 }] },
+            { id: 11, text: "面对风险，你的态度是？", country: "switzerland", options: [{ emoji: "🛡️", text: "谨慎评估，避免不必要的风险", weight: 3 }, { emoji: "⚡", text: "风险越大，回报越大", weight: 1 }, { emoji: "⚖️", text: "平衡风险和收益", weight: 2 }, { emoji: "🎲", text: "有时候值得冒险一试", weight: 1 }] },
+            { id: 12, text: "看到他人进步，你的感受是？", country: "bangladesh", options: [{ emoji: "🌱", text: "非常满足，比自己的成功还开心", weight: 3 }, { emoji: "👍", text: "为他们感到高兴", weight: 2 }, { emoji: "🤝", text: "想帮助他们更进一步", weight: 2 }, { emoji: "😊", text: "不错，但不特别在意", weight: 1 }] },
+            { id: 13, text: "你的日常生活通常是？", country: "vietnam", options: [{ emoji: "📅", text: "高度规律，按计划执行", weight: 3 }, { emoji: "🌊", text: "随性而为，看心情", weight: 1 }, { emoji: "⚖️", text: "有基本框架但保持灵活", weight: 2 }, { emoji: "🎯", text: "根据目标调整节奏", weight: 2 }] },
+            { id: 14, text: "朋友向你倾诉烦恼，你会？", country: "canada", options: [{ emoji: "💝", text: "感同身受，理解他们的情绪", weight: 3 }, { emoji: "💡", text: "提供解决方案和建议", weight: 2 }, { emoji: "👂", text: "静静倾听，给予支持", weight: 2 }, { emoji: "🤝", text: "分享类似经历", weight: 1 }] },
+            { id: 15, text: "工作时被干扰，你会？", country: "iceland", options: [{ emoji: "🔒", text: "非常困扰，需要重新集中精神", weight: 3 }, { emoji: "🔄", text: "可以快速切换注意力", weight: 1 }, { emoji: "⏸️", text: "先处理干扰再继续", weight: 2 }, { emoji: "🚫", text: "会屏蔽干扰源", weight: 2 }] },
+            { id: 16, text: "你更关注？", country: "peru", options: [{ emoji: "🔮", text: "未来的可能性和愿景", weight: 3 }, { emoji: "📍", text: "当下的实际情况", weight: 1 }, { emoji: "📚", text: "过去的经验教训", weight: 1 }, { emoji: "⚖️", text: "平衡过去、现在和未来", weight: 2 }] },
+            { id: 17, text: "面对冲突，你会？", country: "fiji", options: [{ emoji: "☮️", text: "积极调解，寻求共识", weight: 3 }, { emoji: "⚔️", text: "坚持己见，据理力争", weight: 1 }, { emoji: "🏃", text: "避免卷入，保持距离", weight: 1 }, { emoji: "⚖️", text: "评估谁更有道理", weight: 2 }] },
+            { id: 18, text: "头脑风暴时，你通常？", country: "france", options: [{ emoji: "💡", text: "产生很多新奇独特的想法", weight: 3 }, { emoji: "🔧", text: "专注于可行的方案", weight: 2 }, { emoji: "📊", text: "分析每个想法的可行性", weight: 1 }, { emoji: "🎯", text: "围绕目标提出想法", weight: 2 }] },
+            { id: 19, text: "看到有人被冷落，你会？", country: "thailand", options: [{ emoji: "🤗", text: "主动邀请他们加入", weight: 3 }, { emoji: "👀", text: "观察一下再决定", weight: 2 }, { emoji: "🤷", text: "这是他们自己的事", weight: 1 }, { emoji: "💬", text: "私下关心他们", weight: 2 }] },
+            { id: 20, text: "你如何看待每个人的独特性？", country: "morocco", options: [{ emoji: "🌟", text: "非常在意，每个人都有自己的特点", weight: 3 }, { emoji: "👥", text: "更关注共同点和群体特征", weight: 1 }, { emoji: "⚖️", text: "平衡看待独特性和共性", weight: 2 }, { emoji: "🤔", text: "有时候会注意到", weight: 2 }] },
+            { id: 21, text: "你平时的阅读习惯是？", country: "indonesia", options: [{ emoji: "📚", text: "广泛涉猎各种领域的知识", weight: 3 }, { emoji: "🎯", text: "专注于自己专业的深度阅读", weight: 2 }, { emoji: "📰", text: "主要看新闻和实用信息", weight: 1 }, { emoji: "📖", text: "喜欢小说和文学作品", weight: 2 }] },
+            { id: 22, text: "独处时间对你来说是？", country: "cuba", options: [{ emoji: "🧠", text: "深度思考和精神充电的宝贵时间", weight: 3 }, { emoji: "😔", text: "感到孤独和无聊", weight: 1 }, { emoji: "🎮", text: "做自己喜欢的事情放松", weight: 2 }, { emoji: "📱", text: "通过社交媒体与他人联系", weight: 1 }] },
+            { id: 23, text: "学习新技能时，你最享受？", country: "denmark", options: [{ emoji: "📈", text: "学习过程本身的乐趣", weight: 3 }, { emoji: "🏆", text: "掌握后的成就感", weight: 2 }, { emoji: "💼", text: "能够应用于实际", weight: 2 }, { emoji: "🎓", text: "获得证书或认可", weight: 1 }] },
+            { id: 24, text: "完成一项任务，你会？", country: "italy", options: [{ emoji: "✨", text: "反复打磨，直到达到最高标准", weight: 3 }, { emoji: "✓", text: "达到要求即可，继续下一项", weight: 1 }, { emoji: "⚖️", text: "根据重要性决定投入程度", weight: 2 }, { emoji: "🤝", text: "寻求反馈再改进", weight: 2 }] },
+            { id: 25, text: "面对挫折，你的第一反应是？", country: "australia", options: [{ emoji: "🌈", text: "相信会有好的一面，保持乐观", weight: 3 }, { emoji: "🔍", text: "分析问题，找出原因", weight: 2 }, { emoji: "😔", text: "感到沮丧，需要时间调整", weight: 1 }, { emoji: "🤝", text: "寻求朋友支持", weight: 2 }] },
+            { id: 26, text: "在社交方面，你更倾向？", country: "philippines", options: [{ emoji: "❤️", text: "与少数亲密朋友深度交往", weight: 3 }, { emoji: "🌐", text: "结交很多朋友，扩大社交圈", weight: 1 }, { emoji: "⚖️", text: "两者兼顾", weight: 2 }, { emoji: "🏠", text: "更喜欢独处", weight: 1 }] },
+            { id: 27, text: "当你承诺做某事后，你会？", country: "myanmar", options: [{ emoji: "⚡", text: "全力以赴，无论如何都要完成", weight: 3 }, { emoji: "⚖️", text: "视情况而定", weight: 1 }, { emoji: "📋", text: "尽力而为，但不做过度承诺", weight: 2 }, { emoji: "🤝", text: "寻求他人帮助完成", weight: 1 }] },
+            { id: 28, text: "发现问题时，你会？", country: "srilanka", options: [{ emoji: "🔧", text: "兴奋，喜欢解决问题", weight: 3 }, { emoji: "😤", text: "感到烦恼，希望有人处理", weight: 1 }, { emoji: "📋", text: "记录并安排时间解决", weight: 2 }, { emoji: "🤝", text: "通知相关人员处理", weight: 1 }] },
+            { id: 29, text: "面对不确定性，你会？", country: "argentina", options: [{ emoji: "💪", text: "相信自己能应对任何情况", weight: 3 }, { emoji: "😰", text: "感到焦虑和不确定", weight: 1 }, { emoji: "📋", text: "制定计划降低不确定性", weight: 2 }, { emoji: "🤝", text: "寻求他人建议和支持", weight: 1 }] },
+            { id: 30, text: "你工作的动力主要来自？", country: "jamaica", options: [{ emoji: "🌟", text: "想要留下印记，被认可", weight: 3 }, { emoji: "💰", text: "获得经济回报", weight: 1 }, { emoji: "😊", text: "享受工作本身", weight: 2 }, { emoji: "🤝", text: "帮助他人或社会", weight: 2 }] },
+            { id: 31, text: "面对复杂情况，你会？", country: "egypt", options: [{ emoji: "🗺️", text: "快速找到关键路径和最佳方案", weight: 3 }, { emoji: "🔍", text: "详细分析所有细节", weight: 2 }, { emoji: "🎯", text: "聚焦当下最重要的事", weight: 2 }, { emoji: "🤝", text: "与团队讨论决定", weight: 1 }] },
+            { id: 32, text: "你如何看待历史？", country: "uk", options: [{ emoji: "📜", text: "非常重要，能指导现在和未来", weight: 3 }, { emoji: "🔄", text: "应该关注现在和未来", weight: 1 }, { emoji: "⚖️", text: "适度参考历史经验", weight: 2 }, { emoji: "🎓", text: "作为学习的素材", weight: 2 }] },
+            { id: 33, text: "在社交场合，你通常？", country: "brazil", options: [{ emoji: "🎉", text: "享受结识新朋友，自来熟", weight: 3 }, { emoji: "👥", text: "和熟悉的朋友在一起", weight: 1 }, { emoji: "🤝", text: "有目的性地建立关系", weight: 2 }, { emoji: "👀", text: "观察他人，不怎么主动", weight: 1 }] },
+            { id: 34, text: "对待规则，你的态度是？", country: "sweden", options: [{ emoji: "⚖️", text: "规则应该平等适用于所有人", weight: 3 }, { emoji: "🔄", text: "规则可以根据情况灵活调整", weight: 1 }, { emoji: "🎯", text: "看规则是否合理", weight: 2 }, { emoji: "👥", text: "考虑人情因素", weight: 1 }] },
+            { id: 35, text: "如果能选择一个超能力，你会选？", country: "colombia", options: [{ emoji: "💪", text: "永不放弃的毅力和韧性", weight: 3 }, { emoji: "🧠", text: "无限的智慧和知识", weight: 2 }, { emoji: "❤️", text: "治愈他人伤痛的能力", weight: 2 }, { emoji: "🌟", text: "影响和激励他人的魅力", weight: 2 }] }
+        ];
+
+        let currentQuestion = 0;
+        let countryScores = {};
+
+        function initScores() {
+            countryScores = {};
+            Object.keys(countries).forEach(key => countryScores[key] = 0);
+        }
+
+        function startQuiz() {
+            initScores();
+            currentQuestion = 0;
+            document.getElementById('welcomePage').style.display = 'none';
+            document.getElementById('quizPage').style.display = 'block';
+            document.getElementById('quizPage').classList.add('fade-in');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('currentQuestion').textContent = currentQuestion + 1;
+            document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+            document.getElementById('questionText').textContent = question.text;
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option-card slide-in-right';
+                optionDiv.style.animationDelay = (index * 0.1) + 's';
+                optionDiv.innerHTML = `<div class="option-emoji">${option.emoji}</div><div class="option-text">${option.text}</div>`;
+                optionDiv.onclick = () => selectOption(question.country, option.weight);
+                optionsContainer.appendChild(optionDiv);
+            });
+        }
+
+        function selectOption(country, weight) {
+            if (countryScores[country] !== undefined) countryScores[country] += weight;
+            event.currentTarget.classList.add('selected');
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < questions.length) showQuestion();
+                else showLoading();
+            }, 300);
+        }
+
+        function showLoading() {
+            document.getElementById('quizPage').style.display = 'none';
+            document.getElementById('loadingPage').style.display = 'flex';
+            setTimeout(() => document.getElementById('step2').classList.add('active'), 800);
+            setTimeout(() => document.getElementById('step3').classList.add('active'), 1600);
+            setTimeout(() => showResult(), 2500);
+        }
+
+        function showResult() {
+            const sortedCountries = Object.entries(countryScores).sort((a, b) => b[1] - a[1]);
+            const topCountryKey = sortedCountries[0][0];
+            const topCountry = countries[topCountryKey];
+            document.getElementById('resultCountry').textContent = topCountry.name;
+            document.getElementById('resultCountryEn').textContent = topCountry.nameEn;
+            document.getElementById('resultEmoji').textContent = topCountry.emoji;
+            document.getElementById('strengthTag').textContent = '🎯 ' + topCountry.strength;
+            document.getElementById('resultDescription').textContent = topCountry.description;
+            document.getElementById('whyText').textContent = topCountry.whyCountry;
+            document.getElementById('celebrityName').textContent = topCountry.celebrity;
+            document.getElementById('celebrityAvatar').textContent = topCountry.celebrityEmoji;
+            document.getElementById('celebrityDesc').textContent = topCountry.celebrityDesc;
+            const traitsGrid = document.getElementById('traitsGrid');
+            traitsGrid.innerHTML = '';
+            topCountry.traits.forEach(trait => {
+                const div = document.createElement('div');
+                div.className = 'trait-item';
+                div.textContent = trait;
+                traitsGrid.appendChild(div);
+            });
+            
+            const mockRank = Math.floor(Math.random() * 1000) + 1;
+            const mockPercent = ((mockRank / 12580) * 100).toFixed(1);
+            document.getElementById('userRank').textContent = mockRank.toLocaleString();
+            document.getElementById('userPercent').textContent = mockPercent + '%';
+            document.getElementById('statsBarFill').style.width = mockPercent + '%';
+            document.getElementById('loadingPage').style.display = 'none';
+            document.getElementById('resultPage').style.display = 'block';
+            document.getElementById('resultPage').classList.add('fade-in');
+        }
+
+        function restartQuiz() {
+            document.getElementById('resultPage').style.display = 'none';
+            document.getElementById('welcomePage').style.display = 'flex';
+            document.getElementById('welcomePage').classList.add('fade-in');
+        }
+
+        function showShareModal() { document.getElementById('shareModal').classList.add('active'); }
+        function hideShareModal(event) { if (!event || event.target.id === 'shareModal') document.getElementById('shareModal').classList.remove('active'); }
+        function shareTo(platform) {
+            const country = document.getElementById('resultCountry').textContent;
+            const strength = document.getElementById('strengthTag').textContent;
+            const text = `我的天赋国度是【${country}】！${strength}\n\n基于盖洛普优势识别器，35道题发现我的灵魂归属地～\n\n快来测测你的天赋国度吧！`;
+            if (platform === 'wechat') alert('请截图分享到朋友圈！\n\n' + text);
+            else if (platform === 'weibo') window.open(`https://service.weibo.com/share/share.php?title=${encodeURIComponent(text)}`, '_blank');
+            else if (platform === 'qq') window.open(`https://connect.qq.com/widget/shareqq/index.html?title=${encodeURIComponent(text)}`, '_blank');
+            hideShareModal();
+        }
+        function copyLink() {
+            const text = window.location.href;
+            if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => alert('链接已复制到剪贴板！'));
+            hideShareModal();
+        }
+    </script>
+</body>
+</html>
