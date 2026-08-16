@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
-rm -rf src out
-git --version
-git clone --depth 1 --branch main-sequence-v5-symmetric-stop-1h-20260816 https://github.com/axobase001/test.git src
-test -f src/main_sequence/v5_hourly_symmetric_stop.py
+rm -rf out
+python3 -m pip install --disable-pip-version-check -q requests numpy pandas scipy pyarrow 'honest-backtest[parquet]==0.2.0'
+python3 - <<'PY'
+import requests,numpy,pandas,scipy,pyarrow
+import honest_backtest
+print('stack ok')
+PY
 mkdir -p out
-printf 'git clone passed\n' > out/index.html
+printf 'scientific stack passed\n' > out/index.html
