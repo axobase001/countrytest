@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-rm -rf out .venv
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install --disable-pip-version-check -q --upgrade pip
-python -m pip install --disable-pip-version-check -q requests numpy pandas scipy pyarrow 'honest-backtest[parquet]==0.2.0'
-python - <<'PY'
-import requests,numpy,pandas,scipy,pyarrow,honest_backtest
-print('stack ok')
-PY
 mkdir -p out
-printf 'venv scientific stack passed\n' > out/index.html
+python3 - <<'PY'
+import time
+now=time.time()
+target=((int(now)//60)+1)*60+30
+wait=max(0,target-now)
+print('CAL_TARGET', target, 'WAIT', wait, flush=True)
+time.sleep(wait)
+PY
+printf 'timing calibration complete\n' > out/index.html
