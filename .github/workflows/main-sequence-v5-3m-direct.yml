@@ -1,0 +1,56 @@
+name: main-sequence-v5-3m-direct
+
+on:
+  push:
+    paths:
+      - '.github/workflows/main-sequence-v5-3m-direct.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  replay-3m:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install stack
+        run: python -m pip install 'honest-backtest[parquet]==0.2.0' requests scipy pandas pyarrow numpy
+      - name: Clone frozen strategy source
+        run: git clone --depth 1 --branch main-sequence-v5-symmetric-stop-1h-20260816 https://github.com/axobase001/test.git src
+      - name: Syntax and frozen constants
+        working-directory: src
+        run: |
+          python -m py_compile main_sequence/v5_hourly_symmetric_stop.py
+          python main_sequence/v5_hourly_symmetric_stop.py protocol --out ../protocol
+      - name: Score full recent 3m state directly
+        working-directory: src
+        run: python main_sequence/v5_hourly_symmetric_stop.py score --start 2026-05-15 --end 2026-08-15 --out ../state_3m --workers 16
+      - name: Aggregate exact 3m bankroll
+        working-directory: src
+        run: |
+          mkdir -p ../state_root/three
+          cp ../state_3m/state_rows.csv ../state_root/three/state_rows.csv
+          cp ../state_3m/inventory.csv ../state_root/three/inventory.csv
+          python main_sequence/v5_hourly_symmetric_stop.py aggregate --root ../state_root --out ../aggregate
+      - name: Print exact 3m
+        run: cat aggregate/summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: main-sequence-v5-direct-3m
+          path: |
+            protocol/
+            state_3m/summary.json
+            state_3m/inventory.csv
+            state_3m/state_rows.csv
+            aggregate/
+          if-no-files-found: warn
+          retention-days: 14
