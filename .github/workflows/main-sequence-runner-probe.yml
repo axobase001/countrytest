@@ -1,0 +1,16 @@
+name: main-sequence-runner-probe
+on:
+  push:
+    branches: [main-sequence-eth-runner-20260818]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - run: |
+          python --version
+          curl -fsSL --max-time 20 'https://gamma-api.polymarket.com/markets?limit=1' | head -c 200
+          echo
+          echo RUNNER_PROBE_OK
