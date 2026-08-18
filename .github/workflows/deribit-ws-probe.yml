@@ -7,31 +7,33 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: python -m pip install requests
-      - name: Probe Tardis archive access
+      - run: python -m pip install huggingface_hub hf_xet pyarrow pandas
+      - name: Inspect Deribit HF archives
         run: |
           python - <<'PY'
-          import requests, gzip, io
-          urls=[
-            'https://datasets.tardis.dev/v1/deribit/trades/2026/06/01/OPTIONS.csv.gz',
-            'https://datasets.tardis.dev/v1/deribit/trades/2026/06/15/OPTIONS.csv.gz',
-            'https://datasets.tardis.dev/v1/deribit/options_chain/2026/06/01/OPTIONS.csv.gz',
-            'https://datasets.tardis.dev/v1/deribit/options_chain/2026/06/15/OPTIONS.csv.gz',
-            'https://datasets.tardis.dev/v1/deribit/trades/2026/07/15/OPTIONS.csv.gz',
-          ]
-          for u in urls:
-              try:
-                  r=requests.get(u,headers={'Range':'bytes=0-65535'},timeout=40,allow_redirects=True)
-                  print('URL',u,'status',r.status_code,'len',len(r.content),'ctype',r.headers.get('content-type'),'crange',r.headers.get('content-range'))
-                  print('body_head',repr(r.content[:200]))
-                  if r.status_code in (200,206) and r.content[:2]==b'\x1f\x8b':
+          from huggingface_hub import HfApi, hf_hub_download
+          import os, pyarrow.parquet as pq, pandas as pd
+          api=HfApi()
+          repos=['johnsmith414718/crypto-market-datasets']
+          print('SEARCH_DERIBIT')
+          for d in api.list_datasets(search='deribit',limit=50):
+              print('DATASET',d.id)
+          for repo in repos:
+              print('\nREPO',repo)
+              files=api.list_repo_files(repo,repo_type='dataset')
+              hits=[f for f in files if 'deribit' in f.lower()]
+              print('DERIBIT_FILES',len(hits))
+              for f in hits[:300]: print('FILE',f)
+              for f in hits:
+                  if any(x in f for x in ['2026/05','2026/06','2026/07','2026/08','2026-05','2026-06','2026-07','2026-08']) and f.endswith('.parquet'):
                       try:
-                          txt=gzip.GzipFile(fileobj=io.BytesIO(r.content)).read(5000)
-                          print('gzip_head',repr(txt[:2000]))
-                      except Exception as e: print('partial_gzip',repr(e))
-              except Exception as e: print('ERR',u,repr(e))
+                          p=hf_hub_download(repo,f,repo_type='dataset')
+                          pf=pq.ParquetFile(p)
+                          print('SCHEMA_FILE',f,'rows',pf.metadata.num_rows,'schema',pf.schema_arrow)
+                          print(pd.read_parquet(p).head(3).to_string())
+                      except Exception as e: print('READ_ERR',f,repr(e))
           PY
