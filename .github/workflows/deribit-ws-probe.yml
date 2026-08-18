@@ -11,43 +11,27 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: python -m pip install websockets
-      - name: Probe WebSocket RPC
+      - run: python -m pip install requests
+      - name: Probe Tardis archive access
         run: |
           python - <<'PY'
-          import asyncio, json, datetime
-          import websockets
-
-          async def rpc(url, method, params, timeout=25):
+          import requests, gzip, io
+          urls=[
+            'https://datasets.tardis.dev/v1/deribit/trades/2026/06/01/OPTIONS.csv.gz',
+            'https://datasets.tardis.dev/v1/deribit/trades/2026/06/15/OPTIONS.csv.gz',
+            'https://datasets.tardis.dev/v1/deribit/options_chain/2026/06/01/OPTIONS.csv.gz',
+            'https://datasets.tardis.dev/v1/deribit/options_chain/2026/06/15/OPTIONS.csv.gz',
+            'https://datasets.tardis.dev/v1/deribit/trades/2026/07/15/OPTIONS.csv.gz',
+          ]
+          for u in urls:
               try:
-                  async with websockets.connect(url, open_timeout=timeout, close_timeout=5, ping_interval=None, max_size=64*1024*1024) as ws:
-                      req={'jsonrpc':'2.0','id':1,'method':method,'params':params}
-                      await ws.send(json.dumps(req))
-                      raw=await asyncio.wait_for(ws.recv(),timeout=timeout)
-                      obj=json.loads(raw)
-                      if 'error' in obj:
-                          print('RPC_ERROR',url,method,obj['error']); return None
-                      return obj.get('result')
-              except Exception as e:
-                  print('WS_ERROR',url,method,repr(e)); return None
-
-          async def main():
-              urls=['wss://www.deribit.com/ws/api/v2','wss://history.deribit.com/ws/api/v2']
-              for url in urls:
-                  for expired in (True,False):
-                      r=await rpc(url,'public/get_instruments',{'currency':'ETH','kind':'option','expired':expired})
-                      if isinstance(r,list):
-                          ex=[x.get('expiration_timestamp') for x in r if x.get('expiration_timestamp')]
-                          cr=[x.get('creation_timestamp') for x in r if x.get('creation_timestamp')]
-                          print('INSTR',url,'expired',expired,'count',len(r),'min_exp',min(ex) if ex else None,'max_exp',max(ex) if ex else None,'min_creation',min(cr) if cr else None,'max_creation',max(cr) if cr else None)
-                          # candidates expiring in May-Aug 2026
-                          lo=1777593600000; hi=1788134400000
-                          cand=[x for x in r if lo <= int(x.get('expiration_timestamp') or 0) <= hi]
-                          print('WINDOW_CAND',len(cand),[x.get('instrument_name') for x in cand[:8]])
-                          if cand:
-                              name=cand[len(cand)//2]['instrument_name']
-                              t0=1778803200000; t1=1786751999000
-                              tr=await rpc(url,'public/get_last_trades_by_instrument_and_time',{'instrument_name':name,'start_timestamp':t0,'end_timestamp':t1,'count':10,'sorting':'asc'})
-                              print('TRADE_PROBE',url,name,'type',type(tr).__name__,'value',str(tr)[:3000])
-          asyncio.run(main())
+                  r=requests.get(u,headers={'Range':'bytes=0-65535'},timeout=40,allow_redirects=True)
+                  print('URL',u,'status',r.status_code,'len',len(r.content),'ctype',r.headers.get('content-type'),'crange',r.headers.get('content-range'))
+                  print('body_head',repr(r.content[:200]))
+                  if r.status_code in (200,206) and r.content[:2]==b'\x1f\x8b':
+                      try:
+                          txt=gzip.GzipFile(fileobj=io.BytesIO(r.content)).read(5000)
+                          print('gzip_head',repr(txt[:2000]))
+                      except Exception as e: print('partial_gzip',repr(e))
+              except Exception as e: print('ERR',u,repr(e))
           PY
