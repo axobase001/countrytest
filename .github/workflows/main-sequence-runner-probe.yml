@@ -2,6 +2,8 @@ name: main-sequence-runner-probe
 on:
   push:
     branches: [main-sequence-eth-runner-20260818]
+  pull_request:
+    branches: [main]
 permissions:
   contents: read
 jobs:
