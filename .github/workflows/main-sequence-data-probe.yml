@@ -1,0 +1,45 @@
+name: main-sequence-data-probe
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install probe deps
+        run: python -m pip install requests duckdb huggingface_hub hf_xet pyarrow
+      - name: Deribit metadata probe
+        run: |
+          python - <<'PY'
+          import requests, datetime
+          for base in ['https://history.deribit.com/api/v2/public/get_instruments','https://www.deribit.com/api/v2/public/get_instruments']:
+              for expired in ('true','false'):
+                  try:
+                      r=requests.get(base,params={'currency':'ETH','kind':'option','expired':expired},timeout=30)
+                      print('DERIBIT',base,'expired',expired,'status',r.status_code,'bytes',len(r.content))
+                      if r.ok:
+                          rows=r.json().get('result',[])
+                          ex=[x.get('expiration_timestamp') for x in rows if x.get('expiration_timestamp')]
+                          cr=[x.get('creation_timestamp') for x in rows if x.get('creation_timestamp')]
+                          print(' count',len(rows),'min_exp',min(ex) if ex else None,'max_exp',max(ex) if ex else None,'min_creation',min(cr) if cr else None,'max_creation',max(cr) if cr else None)
+                          print(' sample_names',[x.get('instrument_name') for x in rows[:5]])
+                  except Exception as e:
+                      print('DERIBIT_ERROR',base,expired,repr(e))
+          PY
+      - name: HF Chainlink payload probe
+        run: |
+          python - <<'PY'
+          from huggingface_hub import hf_hub_download
+          import duckdb, json
+          p=hf_hub_download('Alezanello/polymarket-arena-capture','cap_prices.parquet',repo_type='dataset')
+          con=duckdb.connect()
+          rows=con.execute('SELECT ts_ms, src, asset, value, "full" FROM read_parquet(?) WHERE upper(asset)=\'ETH\' AND lower(src)=\'chainlink\' LIMIT 12',[p]).fetchall()
+          for i,r in enumerate(rows):
+              print('CHAINLINK_ROW',i,'ts_ms',r[0],'value',r[3],'full_repr',repr(r[4])[:4000])
+          print('SCHEMA',con.execute('DESCRIBE SELECT * FROM read_parquet(?)',[p]).fetchall())
+          PY
