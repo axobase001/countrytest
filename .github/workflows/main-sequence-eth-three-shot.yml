@@ -7,6 +7,7 @@ permissions:
   contents: read
 env:
   PYTHONUNBUFFERED: "1"
+  PYTHONPATH: "${{ github.workspace }}/source"
   HF_HUB_DISABLE_PROGRESS_BARS: "1"
   FROZEN_SHA: "5421d7d55a461c7974a78898e08fcc6781eb2827"
 jobs:
